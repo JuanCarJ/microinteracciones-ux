@@ -1,0 +1,61 @@
+{
+  "skill_name": "microinteracciones-ux",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Como experto en UX, audita las microinteracciones de este carrito desde la vista del comprador (móvil y escritorio). Para cada hallazgo dame el comportamiento actual, el sugerido, la razón y el tipo de microinteracción. Archivo: carrito.html",
+      "expected_output": "Reporte de auditoría en markdown con tabla resumen priorizada y hallazgos con actual/sugerido/razón/tipo, cubriendo confirm() de borrado, total que salta y muestra '...', cupón con alert y spinner a pantalla completa, botón Pagar sin estado de carga, toast que tapa la barra inferior, badge sin feedback, talla deshabilitada y movimiento reducido.",
+      "files": [
+        "evals/fixtures/carrito/carrito.html"
+      ],
+      "assertions": [
+        "Cada hallazgo incluye comportamiento actual, comportamiento sugerido, razón y tipo de microinteracción",
+        "Incluye una tabla resumen con prioridad por hallazgo",
+        "Propone Deshacer (undo) en lugar del confirm() del navegador al eliminar un producto",
+        "Detecta que el botón Pagar no tiene estado de carga y el riesgo de doble envío",
+        "Detecta que el aviso (toast) queda encima de la barra de navegación inferior",
+        "Detecta que el descuento/total muestra '...' o salta y propone animar el cambio de valor conservando el último valor",
+        "Detecta el cupón resuelto con alert() y spinner a pantalla completa y propone validación/feedback en línea",
+        "Aborda prefers-reduced-motion (movimiento reducido)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Quiero que al tocar 'Agregar al carrito' la foto de la prenda vuele hasta el ícono del carrito y el número del badge cambie cuando llegue, no antes. Tiene que respetar a quien pide menos movimiento. Te dejo los componentes (Next 16, React 19, framer-motion, zustand). Implementalo.",
+      "expected_output": "Archivos modificados/nuevos: helper de vuelo (clon fixed + WAAPI en arco), badge que retiene el número hasta el evento de llegada con tope, fallback con reduced motion o sin destino visible (confirmación textual), accesibilidad del conteo.",
+      "files": [
+        "evals/fixtures/react-cart/AddToCartButton.tsx",
+        "evals/fixtures/react-cart/CartBadge.tsx",
+        "evals/fixtures/react-cart/cart-store.ts",
+        "evals/fixtures/react-cart/README.md"
+      ],
+      "assertions": [
+        "El badge no actualiza el número al agregar: lo retiene hasta una señal de llegada del vuelo",
+        "Existe un tope de tiempo (timeout) para liberar el número si el vuelo no llega",
+        "Con prefers-reduced-motion no se hace el vuelo y hay una confirmación alternativa",
+        "Maneja el caso de que el ícono destino no esté visible (busca un destino visible o hace fallback)",
+        "El clon se anima solo con transform/opacity en un elemento fijo (no anima top/left/width/height)",
+        "El conteo del carrito es accesible (aria-label con la cuenta o región aria-live)",
+        "El clon se retira del DOM al terminar la animación"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "QA reporta que después de navegar desde dentro del carrito lateral la página queda congelada (ver NOTAS.md). Arregla CartDrawer.tsx y escribe una prueba Playwright que lo cubra, incluyendo que el velo y el foco se comporten bien.",
+      "expected_output": "CartDrawer corregido con desmontaje determinista o fase de cierre inerte (inert/pointer-events none) que no dependa de que termine la salida de AnimatePresence, velo que sale después del panel, foco atrapado y devuelto, más un spec de Playwright que navega con el panel abierto y afirma que panel y velo salen del DOM y que la página nueva es clicable.",
+      "files": [
+        "evals/fixtures/drawer/CartDrawer.tsx",
+        "evals/fixtures/drawer/cart-ui-store.ts",
+        "evals/fixtures/drawer/NOTAS.md"
+      ],
+      "assertions": [
+        "Identifica como causa que la salida de AnimatePresence no se completa y deja una capa que intercepta clics",
+        "Durante el cierre el panel y el velo no bloquean la página (inert/pointer-events none) o se desmontan de forma determinista por tiempo",
+        "El velo no desaparece antes que el panel al cerrar",
+        "El foco queda atrapado en el panel, Escape cierra y el foco vuelve al disparador",
+        "El spec de Playwright navega desde dentro del panel abierto y afirma que panel y velo ya no están (o no interceptan) y que la página nueva es clicable",
+        "El spec de Playwright verifica el comportamiento del foco (trampa o retorno al disparador)"
+      ]
+    }
+  ]
+}

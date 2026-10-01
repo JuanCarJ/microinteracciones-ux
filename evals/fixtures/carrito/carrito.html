@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carrito · Tienda Nube</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; background: #fff; color: #111; }
+  header { display:flex; justify-content:space-between; padding:16px; border-bottom:1px solid #ddd; }
+  .badge { background:#c00; color:#fff; border-radius:999px; padding:0 6px; font-size:12px; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px 16px 96px; }
+  .item { display:flex; gap:12px; align-items:center; border-bottom:1px solid #eee; padding:12px 0; }
+  .item img { width:64px; height:80px; object-fit:cover; background:#eee; }
+  .qty button { width:32px; height:32px; }
+  .size button[disabled] { opacity:.4; }
+  .total { font-size: 24px; font-weight: 700; }
+  .toast { position: fixed; bottom: 0; left: 0; right: 0; background:#111; color:#fff; padding:14px; }
+  nav.bottom { position: fixed; bottom: 0; left: 0; right: 0; display:flex; justify-content:space-around; background:#fafafa; border-top:1px solid #ddd; height:56px; }
+  #spinner { display:none; position:fixed; inset:0; background:#fff; }
+  #spinner.on { display:grid; place-items:center; }
+</style>
+</head>
+<body>
+<header><strong>Tienda Nube</strong><span>Carrito <span class="badge" id="badge">2</span></span></header>
+<div id="spinner">Cargando…</div>
+<main>
+  <h1>Tu carrito</h1>
+  <div class="item" data-id="1">
+    <img alt="" src="">
+    <div style="flex:1">
+      <div>Chaqueta Bomber · Negro</div>
+      <div class="size">Talla: <button>S</button><button>M</button><button disabled>L</button></div>
+      <div class="qty"><button onclick="qty(1,-1)">−</button> <span id="q1">1</span> <button onclick="qty(1,1)">+</button></div>
+    </div>
+    <div>$ <span id="p1">189.900</span></div>
+    <button onclick="removeItem(1)">🗑</button>
+  </div>
+  <div class="item" data-id="2">
+    <img alt="" src="">
+    <div style="flex:1">
+      <div>Camiseta Oversize · Blanco</div>
+      <div class="qty"><button onclick="qty(2,-1)">−</button> <span id="q2">1</span> <button onclick="qty(2,1)">+</button></div>
+    </div>
+    <div>$ <span id="p2">79.900</span></div>
+    <button onclick="removeItem(2)">🗑</button>
+  </div>
+  <p>Cupón: <input id="coupon"> <button onclick="applyCoupon()">Aplicar</button></p>
+  <p>Descuento: <span id="discount">$ 0</span></p>
+  <p class="total">Total: <span id="total">$ 269.800</span></p>
+  <button id="pay" onclick="pay()" style="width:100%;padding:16px;background:#c00;color:#fff;border:0">Pagar</button>
+</main>
+<nav class="bottom"><a href="/">Inicio</a><a href="/tienda">Tienda</a><a href="/carrito">Carrito</a><a href="/cuenta">Cuenta</a></nav>
+<script>
+  const prices = {1:189900, 2:79900}; const q = {1:1, 2:1}; let discount = 0
+  const fmt = (n) => '$ ' + n.toLocaleString('es-CO')
+  function render() {
+    const sub = Object.keys(q).reduce((s,k)=>s+prices[k]*q[k],0)
+    document.getElementById('discount').textContent = '...'
+    setTimeout(() => {
+      document.getElementById('discount').textContent = fmt(discount)
+      document.getElementById('total').textContent = fmt(sub - discount)
+      document.getElementById('badge').textContent = Object.values(q).reduce((a,b)=>a+b,0)
+    }, 900)
+  }
+  function qty(id, d) { q[id] = Math.max(1, q[id] + d); document.getElementById('q'+id).textContent = q[id]; render() }
+  function removeItem(id) {
+    if (!confirm('¿Seguro que quieres eliminar este producto?')) return
+    document.querySelector('[data-id="'+id+'"]').remove(); delete q[id]; render()
+    const t = document.createElement('div'); t.className='toast'; t.textContent='Producto eliminado'; document.body.appendChild(t)
+    setTimeout(()=>t.remove(), 2000)
+  }
+  function applyCoupon() {
+    document.getElementById('spinner').classList.add('on')
+    setTimeout(() => {
+      document.getElementById('spinner').classList.remove('on')
+      if (document.getElementById('coupon').value === 'NUBE10') { discount = 26980; render(); alert('Cupón aplicado') }
+      else alert('Cupón inválido')
+    }, 1500)
+  }
+  function pay() { fetch('/api/orders', { method: 'POST' }).then(() => location.href = '/pago') }
+</script>
+</body>
+</html>
